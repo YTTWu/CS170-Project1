@@ -35,7 +35,6 @@ class PuzzelGameIntro:
         
 
 
-
     
 def main():
     game = PuzzelGameIntro()
