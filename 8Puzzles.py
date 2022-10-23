@@ -1,17 +1,17 @@
 from pip import main
 
 class PuzzelGame:
-    """ keep the puzzel  in one dimension array """
+    """ keep the puzzel in one dimension array """
     def __init__(self, initialState):
         self.puzzelBoard = initialState
-        self.zeroPosition = 0;
+        self.zeroPos = 0;
         self.gameSize = len(self.puzzelBoard);
         
 
 
     def printGame(self):
         for i in range(len(self.puzzelBoard)):
-            print(self.puzzelBoard[i])
+            print(self.puzzelBoard[i], end = " ")
             if(i == 2 or i == 5 or i == 8):
                 print("\n")
     
@@ -39,10 +39,18 @@ class PuzzelGame:
             self.puzzelBoard[self.zeroPos] = temp
             self.zeroPos = self.zeroPos + 3
     def moveLeft(self):
-
+        if self.zeroPos != 0 or self.zeroPos != 3 or self.zeroPos != 6:
+            temp = self.puzzelBoard[self.zeroPos - 1]
+            self.puzzelBoard[self.zeroPos - 1] = self.puzzelBoard[self.zeroPos]
+            self.puzzelBoard[self.zeroPos] = temp
+            self.zeroPos = self.zeroPos - 1
 
     def moveRight(self):
-    
+        if self.zeroPos != 2 or self.zeroPos != 5 or self.zeroPos != 8:
+            temp = self.puzzelBoard[self.zeroPos + 1]
+            self.puzzelBoard[self.zeroPos + 1] = self.puzzelBoard[self.zeroPos]
+            self.puzzelBoard[self.zeroPos] = temp
+            self.zeroPos = self.zeroPos + 1
 
 class PuzzelGameIntro:
     def __init__(self) -> None:
@@ -56,30 +64,25 @@ class PuzzelGameIntro:
             print("Please enter your puzzle below, use a zero to represent the blank")
             print("Enter the first row, use space or tabs between numbers")
             firstRow = input()
-            puzzelBoard.append(firstRow)
+            
             print("Enter the second row, use space or tabs between numbers")
             secondRow = input()
-            puzzelBoard.append(secondRow)
+            
             print("Enter the third row, use space or tabs between numbers")
             thirdRow = input()
-            puzzelBoard.append(thirdRow)
+            
+            temp = firstRow + " " + secondRow + " " + thirdRow
+            puzzelBoard = [int(i) for i in temp.split()]
 
             print("Please select the algorithm you would like to use: ")
             print("(1). Uniform Cost Search / Breadth First Search")
             print("(2). A* with Misplaced Tile Heuristic")
             print("(3). A* with Manhattan Distance Heuristic")
             userChoice = input()
-            print(userChoice)
 
             return PuzzelGame(puzzelBoard)
     
     
-        
-    
-    
-        
-
-
     
 def main():
     start = PuzzelGameIntro()
@@ -87,6 +90,9 @@ def main():
     game = start.intro()
 
     game.printGame()
-    
+    game.moveDown()
+    game.printGame()
+    game.moveRight()
+    game.printGame()
 
 main()
