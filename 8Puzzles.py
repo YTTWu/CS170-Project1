@@ -9,10 +9,12 @@ class Node:
     depth is the depth of the node
     cost is the move of the node
     """
-    def __init__(self, data, parent, depth):
+    def __init__(self, data, parent, depth, missingTiles, distance):
         self.data = data
         self.parent = parent
         self.depth = depth
+        self.missingTiles = missingTiles
+        self.distance = distance
 
 """
 puzzelBoard is the array that holds the puzzle values
@@ -39,12 +41,14 @@ class PuzzelGame:
                 print("\n")
 
     def printPath(self, parent):
+        cnt = 0
         for i in range(len(self.puzzelBoard)):
             print(self.puzzelBoard[i], end = " ")
             if(i == 2 or i == 5 or i == 8):
                 print("\n")
         if parent:
             print("PREVIOUS LEVEL")
+            print("DEPTH: ", parent.depth)
             print("               |")
             print("               |")
             print("               V\n")
@@ -57,7 +61,7 @@ class PuzzelGame:
     """ Uniform Cost Search """
     def uniformCostSearch(self):
         # root node
-        root = Node(PuzzelGame(self.puzzelBoard), None, 0)
+        root = Node(PuzzelGame(self.puzzelBoard), None, 0, 0, 0)
         # object for checking the goal state
         goalCheck = GoalCheck()
         
@@ -95,7 +99,7 @@ class PuzzelGame:
                 # check if the move is repeated
                 if temp not in visited:
                     # if the move is valid, add it to the queue
-                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1))
+                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -108,7 +112,7 @@ class PuzzelGame:
                 temp = cur_node.data.getBoard().copy()
                 cur_node.data.moveUp()
                 if temp not in visited:
-                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1))
+                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -120,7 +124,7 @@ class PuzzelGame:
                 temp = cur_node.data.getBoard().copy()
                 cur_node.data.moveRight()
                 if temp not in visited:
-                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1))
+                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -132,7 +136,7 @@ class PuzzelGame:
                 temp = cur_node.data.getBoard().copy()
                 cur_node.data.moveLeft()
                 if temp not in visited:
-                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1))
+                    q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -140,7 +144,114 @@ class PuzzelGame:
                         return q.pop()
             
             
+    # helper function to calculate the missing tiles
+    def missingTiles(self):
+        count = 0
+        for i in range(len(self.puzzelBoard)):
+            if (self.puzzelBoard[i] != i+1):
+                count += 1
+            if (i == 8 and self.puzzelBoard[i] == 0):
+                count -= 1
+        return count
 
+    # using dictionary to hold the missing tile for each possible move ex. {8 : node_adderess}
+    def misplacedTileHeuristic(self):
+        # root node
+        root = Node(PuzzelGame(self.puzzelBoard), None, 0, 0, 0)
+        # calculate the missing tiles for the current state
+        root.missingTiles = root.data.missingTiles()
+        # object for checking the goal state
+        goalCheck = GoalCheck()
+        
+        # edge case
+        if not root: return None
+        # starting our dequeue with the root node
+        q = deque([root])
+        # instantite a list to hold the visited nodes
+        visited = []
+        # temp to hold the value of the next move
+        temp = []
+
+        while q:
+            # current state of the game move
+            cur_node = q.popleft()
+            # get a copy of the current game state, just the value of the array
+            temp = cur_node.data.getBoard().copy()
+            # skip if we have visited the move
+            if temp in visited: continue
+            #if not add it to the visited list
+            visited.append(temp)
+
+            print("CURRENT LEVEL")
+            print("DEPTH: ", cur_node.depth)
+            cur_node.data.printGame()
+            
+            # check if the "0" can move up
+            if cur_node.data.moveUp():
+                # get a copy of the current game state, just the value of the array
+                temp = cur_node.data.getBoard().copy()
+                # move it back to the previous position because we were just checking if we could move it
+                cur_node.data.moveDown()
+                # check if the move is repeated
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    # check if the move is the goal state
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+
+            # same logic but in different direction   
+            if cur_node.data.moveDown():
+                temp = cur_node.data.getBoard().copy()
+                cur_node.data.moveUp()
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+                
+            # same logic but in different direction
+            if cur_node.data.moveLeft():
+                temp = cur_node.data.getBoard().copy()
+                cur_node.data.moveRight()
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+
+            # same logic but in different direction
+            if cur_node.data.moveRight():
+                temp = cur_node.data.getBoard().copy()
+                cur_node.data.moveLeft()
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+            
+            #sort the queue based on the missingTiles
+            q = deque(sorted(q, key=lambda x: x.missingTiles))
         
 
 
@@ -242,6 +353,9 @@ class PuzzelGameIntro:
             if userChoice == '1':
                 game = PuzzelGame(puzzelBoard)
                 return game.uniformCostSearch()
+            elif userChoice == '2':
+                game = PuzzelGame(puzzelBoard)
+                return game.misplacedTileHeuristic()
 
 
     
@@ -253,7 +367,7 @@ def main():
     finalNode = start.intro()
     print("Goal Reached")
 
-    tail = Node(finalNode.data, finalNode.parent, finalNode.depth)
+    tail = Node(finalNode.data, finalNode.parent, finalNode.depth, finalNode.missingTiles, finalNode.distance)
     while tail:
         tail.data.printPath(tail.parent)
         tail = tail.parent
