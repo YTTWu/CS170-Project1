@@ -1,5 +1,8 @@
+from re import I
+from turtle import distance
 from pip import main
 from collections import deque
+import math
 
 class Node:
     """
@@ -252,6 +255,128 @@ class PuzzelGame:
             
             #sort the queue based on the missingTiles
             q = deque(sorted(q, key=lambda x: x.missingTiles))
+
+
+    # helper funciton to calculate the manhattan distance
+    def distance(self):
+        current = self.puzzelBoard
+
+
+        distanceCnt = 0
+        for i in range(len(current)):
+            
+            value = current[i]
+            goalIndex = value - 1
+            if goalIndex == -1:
+                continue
+                
+            rowDiff = abs(i // 3 - goalIndex // 3)
+            colDiff = abs(i % 3 - goalIndex % 3)
+            
+            distanceCnt += rowDiff + colDiff
+        return distanceCnt
+
+
+
+
+
+    def manhattamDistanceHeuristic(self):
+        # root node
+        root = Node(PuzzelGame(self.puzzelBoard), None, 0, 0, 0)
+        # calculate the missing tiles for the current state
+        root.missingTiles = root.data.distance()
+        # object for checking the goal state
+        goalCheck = GoalCheck()
+        
+        # edge case
+        if not root: return None
+        # starting our dequeue with the root node
+        q = deque([root])
+        # instantite a list to hold the visited nodes
+        visited = []
+        # temp to hold the value of the next move
+        temp = []
+
+        while q:
+            # current state of the game move
+            cur_node = q.popleft()
+            # get a copy of the current game state, just the value of the array
+            temp = cur_node.data.getBoard().copy()
+            # skip if we have visited the move
+            if temp in visited: continue
+            #if not add it to the visited list
+            visited.append(temp)
+
+            print("CURRENT LEVEL")
+            print("DEPTH: ", cur_node.depth)
+            cur_node.data.printGame()
+            
+            # check if the "0" can move up
+            if cur_node.data.moveUp():
+                # get a copy of the current game state, just the value of the array
+                temp = cur_node.data.getBoard().copy()
+                # move it back to the previous position because we were just checking if we could move it
+                cur_node.data.moveDown()
+                # check if the move is repeated
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    # check if the move is the goal state
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+
+            # same logic but in different direction   
+            if cur_node.data.moveDown():
+                temp = cur_node.data.getBoard().copy()
+                cur_node.data.moveUp()
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+                
+            # same logic but in different direction
+            if cur_node.data.moveLeft():
+                temp = cur_node.data.getBoard().copy()
+                cur_node.data.moveRight()
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+
+            # same logic but in different direction
+            if cur_node.data.moveRight():
+                temp = cur_node.data.getBoard().copy()
+                cur_node.data.moveLeft()
+                if temp not in visited:
+                    # create a new node for the new move
+                    newMove = PuzzelGame(temp)
+                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    print("NEXT LEVEL")
+                    print("DEPTH: ", q[-1].depth)
+                    q[-1].data.printGame()
+                    if goalCheck.goalChecker(temp):
+                        return q.pop()
+            
+            #sort the queue based on the missingTiles
+            q = deque(sorted(q, key=lambda x: x.missingTiles))
         
 
 
@@ -356,6 +481,9 @@ class PuzzelGameIntro:
             elif userChoice == '2':
                 game = PuzzelGame(puzzelBoard)
                 return game.misplacedTileHeuristic()
+            elif userChoice == '3':
+                game = PuzzelGame(puzzelBoard)
+                return game.manhattamDistanceHeuristic()
 
 
     
