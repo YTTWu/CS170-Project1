@@ -1,5 +1,4 @@
 from re import I
-from turtle import distance
 from pip import main
 from collections import deque
 import math
@@ -32,6 +31,7 @@ class PuzzelGame:
         self.zeroPos = 0
         self.findZeroPos()
         self.gameSize = len(self.puzzelBoard);
+        self.rowSize = int(math.sqrt(self.gameSize))
         
     """
     print the game, since its in an array, make a new line when the index is 2, 5, 8
@@ -40,14 +40,13 @@ class PuzzelGame:
         print("--------------------------------- NEW MOVE ---------------------------------")
         for i in range(len(self.puzzelBoard)):
             print(self.puzzelBoard[i], end = " ")
-            if(i == 2 or i == 5 or i == 8):
+            if((i + 1) % self.rowSize == 0):
                 print("\n")
 
     def printPath(self, parent):
-        cnt = 0
         for i in range(len(self.puzzelBoard)):
             print(self.puzzelBoard[i], end = " ")
-            if(i == 2 or i == 5 or i == 8):
+            if((i + 1) % self.rowSize == 0):
                 print("\n")
         if parent:
             print("PREVIOUS LEVEL")
@@ -63,10 +62,15 @@ class PuzzelGame:
 
     """ Uniform Cost Search """
     def uniformCostSearch(self):
+        totalNodeExpanded = 0
+        largestQueueSize = 0
         # root node
         root = Node(PuzzelGame(self.puzzelBoard), None, 0, 0, 0)
         # object for checking the goal state
         goalCheck = GoalCheck()
+
+        if goalCheck.goalChecker(root.data.getBoard()):
+            return [root, totalNodeExpanded, largestQueueSize + 1]
         
         # edge case
         if not root: return None
@@ -80,8 +84,10 @@ class PuzzelGame:
         
 
         while q:
+            largestQueueSize = max(largestQueueSize, len(q))
             # current state of the game move
             cur_node = q.popleft()
+
             # get a copy of the current game state, just the value of the array
             temp = cur_node.data.getBoard().copy()
             # skip if we have visited the move
@@ -103,12 +109,13 @@ class PuzzelGame:
                 if temp not in visited:
                     # if the move is valid, add it to the queue
                     q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
+                    totalNodeExpanded += 1
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     # check if the move is the goal state
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
 
             # same logic but in different direction   
             if cur_node.data.moveDown():
@@ -116,11 +123,12 @@ class PuzzelGame:
                 cur_node.data.moveUp()
                 if temp not in visited:
                     q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
+                    totalNodeExpanded += 1
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
                 
             # same logic but in different direction
             if cur_node.data.moveLeft():
@@ -128,11 +136,12 @@ class PuzzelGame:
                 cur_node.data.moveRight()
                 if temp not in visited:
                     q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
+                    totalNodeExpanded += 1
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
 
             # same logic but in different direction
             if cur_node.data.moveRight():
@@ -140,11 +149,12 @@ class PuzzelGame:
                 cur_node.data.moveLeft()
                 if temp not in visited:
                     q.append(Node(PuzzelGame(temp), cur_node, cur_node.depth+1, 0, 0))
+                    totalNodeExpanded += 1
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
             
             
     # helper function to calculate the missing tiles
@@ -153,18 +163,23 @@ class PuzzelGame:
         for i in range(len(self.puzzelBoard)):
             if (self.puzzelBoard[i] != i+1):
                 count += 1
-            if (i == 8 and self.puzzelBoard[i] == 0):
+            if (i == self.gameSize - 1 and self.puzzelBoard[i] == 0):
                 count -= 1
         return count
 
     # using dictionary to hold the missing tile for each possible move ex. {8 : node_adderess}
     def misplacedTileHeuristic(self):
+        totalNodeExpanded = 0
+        largestQueueSize = 0
         # root node
         root = Node(PuzzelGame(self.puzzelBoard), None, 0, 0, 0)
         # calculate the missing tiles for the current state
         root.missingTiles = root.data.missingTiles()
         # object for checking the goal state
         goalCheck = GoalCheck()
+
+        if goalCheck.goalChecker(root.data.getBoard()):
+            return [root, totalNodeExpanded, largestQueueSize + 1]
         
         # edge case
         if not root: return None
@@ -176,8 +191,10 @@ class PuzzelGame:
         temp = []
 
         while q:
+            largestQueueSize = max(largestQueueSize, len(q))
             # current state of the game move
             cur_node = q.popleft()
+            totalNodeExpanded += 1
             # get a copy of the current game state, just the value of the array
             temp = cur_node.data.getBoard().copy()
             # skip if we have visited the move
@@ -206,7 +223,7 @@ class PuzzelGame:
                     q[-1].data.printGame()
                     # check if the move is the goal state
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
 
             # same logic but in different direction   
             if cur_node.data.moveDown():
@@ -221,7 +238,7 @@ class PuzzelGame:
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
                 
             # same logic but in different direction
             if cur_node.data.moveLeft():
@@ -236,7 +253,7 @@ class PuzzelGame:
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
 
             # same logic but in different direction
             if cur_node.data.moveRight():
@@ -251,7 +268,7 @@ class PuzzelGame:
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
             
             #sort the queue based on the missingTiles
             q = deque(sorted(q, key=lambda x: x.missingTiles))
@@ -270,8 +287,8 @@ class PuzzelGame:
             if goalIndex == -1:
                 continue
                 
-            rowDiff = abs(i // 3 - goalIndex // 3)
-            colDiff = abs(i % 3 - goalIndex % 3)
+            rowDiff = abs(i // self.rowSize - goalIndex // self.rowSize)
+            colDiff = abs(i % self.rowSize - goalIndex % self.rowSize)
             
             distanceCnt += rowDiff + colDiff
         return distanceCnt
@@ -281,12 +298,17 @@ class PuzzelGame:
 
 
     def manhattamDistanceHeuristic(self):
+        totalNodeExpanded = 0
+        largestQueueSize = 0
         # root node
         root = Node(PuzzelGame(self.puzzelBoard), None, 0, 0, 0)
         # calculate the missing tiles for the current state
         root.missingTiles = root.data.distance()
         # object for checking the goal state
         goalCheck = GoalCheck()
+
+        if goalCheck.goalChecker(root.data.getBoard()):
+            return [root, totalNodeExpanded, largestQueueSize + 1]
         
         # edge case
         if not root: return None
@@ -298,8 +320,10 @@ class PuzzelGame:
         temp = []
 
         while q:
+            largestQueueSize = max(largestQueueSize, len(q))
             # current state of the game move
             cur_node = q.popleft()
+            totalNodeExpanded += 1
             # get a copy of the current game state, just the value of the array
             temp = cur_node.data.getBoard().copy()
             # skip if we have visited the move
@@ -328,7 +352,7 @@ class PuzzelGame:
                     q[-1].data.printGame()
                     # check if the move is the goal state
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
 
             # same logic but in different direction   
             if cur_node.data.moveDown():
@@ -343,7 +367,7 @@ class PuzzelGame:
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
                 
             # same logic but in different direction
             if cur_node.data.moveLeft():
@@ -358,7 +382,7 @@ class PuzzelGame:
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
 
             # same logic but in different direction
             if cur_node.data.moveRight():
@@ -373,10 +397,10 @@ class PuzzelGame:
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
                     if goalCheck.goalChecker(temp):
-                        return q.pop()
+                        return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
             
             #sort the queue based on the missingTiles
-            q = deque(sorted(q, key=lambda x: x.missingTiles))
+            q = deque(sorted(q, key=lambda x: x.distance))
         
 
 
@@ -388,7 +412,7 @@ class PuzzelGame:
     """need to use mod instead fixed number since we need to make the game interchangeble to different size-----------------------------------------come back later"""
     def moveUp(self):
         # 0 cant not be at the first row
-        if self.zeroPos != 0 and self.zeroPos != 1 and self.zeroPos != 2:
+        if self.zeroPos >= self.rowSize:
             # basic swap
             temp = self.puzzelBoard[self.zeroPos - 3]
             self.puzzelBoard[self.zeroPos - 3] = self.puzzelBoard[self.zeroPos]
@@ -401,7 +425,7 @@ class PuzzelGame:
     
     def moveDown(self):
         # 0 cant not be at the last row
-        if self.zeroPos != 6 and self.zeroPos != 7 and self.zeroPos != 8:
+        if self.zeroPos <= self.gameSize - self.rowSize - 1:
             temp = self.puzzelBoard[self.zeroPos + 3]
             self.puzzelBoard[self.zeroPos + 3] = self.puzzelBoard[self.zeroPos]
             self.puzzelBoard[self.zeroPos] = temp
@@ -412,7 +436,7 @@ class PuzzelGame:
 
     def moveLeft(self):
         # 0 cant not be at the first column
-        if self.zeroPos != 0 and self.zeroPos != 3 and self.zeroPos != 6:
+        if self.zeroPos % self.rowSize != 0:
             temp = self.puzzelBoard[self.zeroPos - 1]
             self.puzzelBoard[self.zeroPos - 1] = self.puzzelBoard[self.zeroPos]
             self.puzzelBoard[self.zeroPos] = temp
@@ -423,7 +447,7 @@ class PuzzelGame:
 
     def moveRight(self):
         # 0 cant not be at the last column
-        if self.zeroPos != 2 and self.zeroPos != 5 and self.zeroPos != 8:
+        if (self.zeroPos + 1) % self.rowSize != 0:
             temp = self.puzzelBoard[self.zeroPos + 1]
             self.puzzelBoard[self.zeroPos + 1] = self.puzzelBoard[self.zeroPos]
             self.puzzelBoard[self.zeroPos] = temp
@@ -441,9 +465,9 @@ class GoalCheck:
     # come back later------------------------------------------------------------------------------------------------------
     def goalChecker(self, puzzel):
         for i in range(len(puzzel)):
-            if (i == 8 and puzzel[i] != 0):
+            if (i == len(puzzel) - 1 and puzzel[i] != 0):
                 return False
-            if(i != 8 and puzzel[i] != i+1):
+            if(i != len(puzzel) - 1 and puzzel[i] != i+1):
                 return False
         print("GOAL STATE FOUND!!!")
         return True
@@ -454,36 +478,44 @@ class PuzzelGameIntro:
 
     def intro(self):
         print("Welcome to the 8 Puzzel Game Solver Program")
-        userInput = input("Type \"1\" to start with a default puzzle Type \"2\" to start with your own custom puzzle: ")
+        userInput = input("\nType \"1\" to start with a default puzzle\nType \"2\" to start with your own custom puzzle: ")
         puzzelBoard = []
-        if userInput == "2":
-            print("Please enter your puzzle below, use a zero to represent the blank")
-            print("Enter the first row, use space or tabs between numbers")
-            firstRow = input()
-            
-            print("Enter the second row, use space or tabs between numbers")
-            secondRow = input()
-            
-            print("Enter the third row, use space or tabs between numbers")
-            thirdRow = input()
-            
-            temp = firstRow + " " + secondRow + " " + thirdRow
+        if userInput == "1":
+            print("Default Puzzle: ")
+    
+            print("Puzzle 1:\n1 2 3\n4 5 6\n7 8 0\n")
+            print("Puzzle 2:\n1 2 3\n4 5 6\n0 7 8\n")
+            print("Type number to choice default puzzel correspondingly (Type 1 to choose Puzzle 1)")
+        defaultChoice = input()
+        if defaultChoice == "1":
+            puzzelBoard = [1,2,3,4,5,6,7,8,0]
+        elif userInput == "2":
+            rowSize = input("\nPlease enter the size of the puzzle.\n(For example: (3) 3x3 | (4) 4x4 | (5) 5x5): ")
+
+        
+
+            print("Please enter your puzzle below, use a space to represent the blank")
+            temp = ""
+            for i in range(int(rowSize)):
+                print("\nEnter the row number " + str(i + 1) + " of the puzzel.  Use space in between numbers")
+                temp += input() + " "
+
             puzzelBoard = [int(i) for i in temp.split()]
 
-            print("Please select the algorithm you would like to use: ")
-            print("(1). Uniform Cost Search / Breadth First Search")
-            print("(2). A* with Misplaced Tile Heuristic")
-            print("(3). A* with Manhattan Distance Heuristic")
-            userChoice = input()
-            if userChoice == '1':
-                game = PuzzelGame(puzzelBoard)
-                return game.uniformCostSearch()
-            elif userChoice == '2':
-                game = PuzzelGame(puzzelBoard)
-                return game.misplacedTileHeuristic()
-            elif userChoice == '3':
-                game = PuzzelGame(puzzelBoard)
-                return game.manhattamDistanceHeuristic()
+        print("Please select the algorithm you would like to use: ")
+        print("(1). Uniform Cost Search / Breadth First Search")
+        print("(2). A* with Misplaced Tile Heuristic")
+        print("(3). A* with Manhattan Distance Heuristic")
+        userChoice = input()
+        if userChoice == '1':
+            game = PuzzelGame(puzzelBoard)
+            return game.uniformCostSearch()
+        elif userChoice == '2':
+            game = PuzzelGame(puzzelBoard)
+            return game.misplacedTileHeuristic()
+        elif userChoice == '3':
+            game = PuzzelGame(puzzelBoard)
+            return game.manhattamDistanceHeuristic()
 
 
     
@@ -492,8 +524,18 @@ class PuzzelGameIntro:
 def main():
     start = PuzzelGameIntro()
 
-    finalNode = start.intro()
-    print("Goal Reached")
+  
+    temp = start.intro()
+    finalNode = temp[0]
+    totalNodeExpanded = temp[1]
+    totalDepth = finalNode.depth
+    largestQueueSize = temp[2]
+    
+    print("Total Node Expanded: ", totalNodeExpanded)
+    print("Total Depth: ", totalDepth)
+    print("Largest Queue Size: ", largestQueueSize)
+
+    print("--------------------------------- BACK TRACING ---------------------------------")
 
     tail = Node(finalNode.data, finalNode.parent, finalNode.depth, finalNode.missingTiles, finalNode.distance)
     while tail:
