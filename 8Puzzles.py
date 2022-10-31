@@ -1,4 +1,3 @@
-from re import I
 from pip import main
 from collections import deque
 import math
@@ -345,7 +344,7 @@ class PuzzelGame:
                 if temp not in visited:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
-                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
                     q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
@@ -361,7 +360,7 @@ class PuzzelGame:
                 if temp not in visited:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
-                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
                     q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
@@ -376,7 +375,7 @@ class PuzzelGame:
                 if temp not in visited:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
-                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
                     q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
@@ -391,7 +390,7 @@ class PuzzelGame:
                 if temp not in visited:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
-                    # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
+                    # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
                     q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
@@ -409,7 +408,7 @@ class PuzzelGame:
             if(self.puzzelBoard[i] == 0):
                 self.zeroPos = i
 
-    """need to use mod instead fixed number since we need to make the game interchangeble to different size-----------------------------------------come back later"""
+
     def moveUp(self):
         # 0 cant not be at the first row
         if self.zeroPos >= self.rowSize:
@@ -462,7 +461,6 @@ class GoalCheck:
     def __init__(self) -> None:
         pass
 
-    # come back later------------------------------------------------------------------------------------------------------
     def goalChecker(self, puzzel):
         for i in range(len(puzzel)):
             if (i == len(puzzel) - 1 and puzzel[i] != 0):
@@ -485,10 +483,19 @@ class PuzzelGameIntro:
     
             print("Puzzle 1:\n1 2 3\n4 5 6\n7 8 0\n")
             print("Puzzle 2:\n1 2 3\n4 5 6\n0 7 8\n")
+            print("Puzzle 3:\n1 3 6\n5 0 7\n4 8 2\n")
+            print("Puzzle 4:\n0 7 2\n4 6 1\n3 5 8\n")
             print("Type number to choice default puzzel correspondingly (Type 1 to choose Puzzle 1)")
-        defaultChoice = input()
-        if defaultChoice == "1":
-            puzzelBoard = [1,2,3,4,5,6,7,8,0]
+            defaultChoice = input()
+            if defaultChoice == "1":
+                puzzelBoard = [1,2,3,4,5,6,7,8,0]
+            elif defaultChoice == "2":
+                puzzelBoard = [1,2,3,4,5,6,0,7,8]
+            elif defaultChoice == "3":
+                puzzelBoard = [1,3,6,5,0,7,4,8,2]
+            elif defaultChoice == "4":
+                puzzelBoard = [0,7,2,4,6,1,3,5,8]
+
         elif userInput == "2":
             rowSize = input("\nPlease enter the size of the puzzle.\n(For example: (3) 3x3 | (4) 4x4 | (5) 5x5): ")
 
