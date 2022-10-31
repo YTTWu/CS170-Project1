@@ -194,6 +194,7 @@ class PuzzelGame:
             # current state of the game move
             cur_node = q.popleft()
             totalNodeExpanded += 1
+            minimumMissingNodes = 0
             # get a copy of the current game state, just the value of the array
             temp = cur_node.data.getBoard().copy()
             # skip if we have visited the move
@@ -216,7 +217,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    totalCost = newMove.missingTiles() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -232,7 +234,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    totalCost = newMove.missingTiles() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -247,7 +250,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    totalCost = newMove.missingTiles() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -262,7 +266,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), 0))
+                    totalCost = newMove.missingTiles() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -270,6 +275,7 @@ class PuzzelGame:
                         return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
             
             #sort the queue based on the missingTiles
+            
             q = deque(sorted(q, key=lambda x: x.missingTiles))
 
 
