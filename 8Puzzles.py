@@ -10,12 +10,12 @@ class Node:
     depth is the depth of the node
     cost is the move of the node
     """
-    def __init__(self, data, parent, depth, missingTiles, distance):
+    def __init__(self, data, parent, depth, distance, totalCost):
         self.data = data
         self.parent = parent
         self.depth = depth
-        self.missingTiles = missingTiles
         self.distance = distance
+        self.totalCost = totalCost
 
 """
 puzzelBoard is the array that holds the puzzle values
@@ -43,13 +43,18 @@ class PuzzelGame:
                 print("\n")
 
     def printPath(self, parent):
+        if parent :
+            print("The best state to expand with a g(n) = " + str(parent.depth) + " and h(n) = " + str(parent.distance))
+            print("CURRENT LEVEL")
+            print("DEPTH: ", parent.depth)
         for i in range(len(self.puzzelBoard)):
             print(self.puzzelBoard[i], end = " ")
             if((i + 1) % self.rowSize == 0):
                 print("\n")
         if parent:
-            print("PREVIOUS LEVEL")
-            print("DEPTH: ", parent.depth)
+            # print("The best state to expand with a g(n) = " + str(parent.depth) + " and h(n) = " + str(parent.distance))
+            # print("PREVIOUS LEVEL")
+            # print("DEPTH: ", parent.depth)
             print("               |")
             print("               |")
             print("               V\n")
@@ -194,7 +199,6 @@ class PuzzelGame:
             # current state of the game move
             cur_node = q.popleft()
             totalNodeExpanded += 1
-            minimumMissingNodes = 0
             # get a copy of the current game state, just the value of the array
             temp = cur_node.data.getBoard().copy()
             # skip if we have visited the move
@@ -218,7 +222,7 @@ class PuzzelGame:
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
                     totalCost = newMove.missingTiles() + cur_node.depth + 1
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -235,7 +239,7 @@ class PuzzelGame:
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
                     totalCost = newMove.missingTiles() + cur_node.depth + 1
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -251,7 +255,7 @@ class PuzzelGame:
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
                     totalCost = newMove.missingTiles() + cur_node.depth + 1
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -267,7 +271,7 @@ class PuzzelGame:
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | missingTiles() return the number of missing tiles
                     totalCost = newMove.missingTiles() + cur_node.depth + 1
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, totalCost, 0))
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.missingTiles(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -276,13 +280,12 @@ class PuzzelGame:
             
             #sort the queue based on the missingTiles
             
-            q = deque(sorted(q, key=lambda x: x.missingTiles))
+            q = deque(sorted(q, key=lambda x: x.totalCost))
 
 
     # helper funciton to calculate the manhattan distance
     def distance(self):
         current = self.puzzelBoard
-
 
         distanceCnt = 0
         for i in range(len(current)):
@@ -351,7 +354,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    totalCost = newMove.distance() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.distance(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -367,7 +371,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    totalCost = newMove.distance() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.distance(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -382,7 +387,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    totalCost = newMove.distance() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.distance(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -397,7 +403,8 @@ class PuzzelGame:
                     # create a new node for the new move
                     newMove = PuzzelGame(temp)
                     # if the move is valid, add it to the queue | distance() return the shortest distance to the correct position
-                    q.append(Node(newMove, cur_node, cur_node.depth+1, 0, newMove.distance()))
+                    totalCost = newMove.distance() + cur_node.depth + 1
+                    q.append(Node(newMove, cur_node, cur_node.depth+1, newMove.distance(), totalCost))
                     print("NEXT LEVEL")
                     print("DEPTH: ", q[-1].depth)
                     q[-1].data.printGame()
@@ -405,7 +412,7 @@ class PuzzelGame:
                         return [q.pop(),totalNodeExpanded, largestQueueSize + 1]
             
             #sort the queue based on the missingTiles
-            q = deque(sorted(q, key=lambda x: x.distance))
+            q = deque(sorted(q, key=lambda x: x.totalCost))
         
 
 
@@ -487,10 +494,14 @@ class PuzzelGameIntro:
         if userInput == "1":
             print("Default Puzzle: ")
     
-            print("Puzzle 1:\n1 2 3\n4 5 6\n7 8 0\n")
-            print("Puzzle 2:\n1 2 3\n4 5 6\n0 7 8\n")
-            print("Puzzle 3:\n1 3 6\n5 0 7\n4 8 2\n")
-            print("Puzzle 4:\n0 7 2\n4 6 1\n3 5 8\n")
+            print("DEPTH 0\nPuzzle ---1:\n1 2 3\n4 5 6\n7 8 0\n")#0
+            print("DEPTH 2\nPuzzle ---2:\n1 2 3\n4 5 6\n0 7 8\n")#2
+            print("DEPTH 4\nPuzzle ---3:\n1 2 3\n5 0 6\n4 7 8\n")#4
+            print("DEPTH 8\nPuzzle ---4:\n1 3 6\n5 0 2\n4 7 8\n")#8
+            print("DEPTH 12\nPuzzle ---5:\n1 3 6\n5 0 7\n4 8 2\n")#12
+            print("DEPTH 16\nPuzzle ---6:\n1 6 7\n5 0 3\n4 8 2\n")#16
+            print("DEPTH 20\nPuzzle ---7:\n7 1 2\n4 8 5\n6 3 0\n")#20
+            print("DEPTH 24\nPuzzle ---8:\n0 7 2\n4 6 1\n3 5 8\n")#24
             print("Type number to choice default puzzel correspondingly (Type 1 to choose Puzzle 1)")
             defaultChoice = input()
             if defaultChoice == "1":
@@ -498,8 +509,16 @@ class PuzzelGameIntro:
             elif defaultChoice == "2":
                 puzzelBoard = [1,2,3,4,5,6,0,7,8]
             elif defaultChoice == "3":
-                puzzelBoard = [1,3,6,5,0,7,4,8,2]
+                puzzelBoard = [1,2,3,5,0,6,4,7,8]
             elif defaultChoice == "4":
+                puzzelBoard = [1,3,6,5,0,2,4,7,8]
+            elif defaultChoice == "5":
+                puzzelBoard = [1,3,6,5,0,7,4,8,2]
+            elif defaultChoice == "6":
+                puzzelBoard = [1,6,7,5,0,3,4,8,2]
+            elif defaultChoice == "7":
+                puzzelBoard = [7,1,2,4,8,5,6,3,0]
+            elif defaultChoice == "8":
                 puzzelBoard = [0,7,2,4,6,1,3,5,8]
 
         elif userInput == "2":
@@ -543,16 +562,17 @@ def main():
     totalNodeExpanded = temp[1]
     totalDepth = finalNode.depth
     largestQueueSize = temp[2]
-    
-    print("Total Node Expanded: ", totalNodeExpanded)
-    print("Total Depth: ", totalDepth)
-    print("Largest Queue Size: ", largestQueueSize)
 
     print("--------------------------------- BACK TRACING ---------------------------------")
 
-    tail = Node(finalNode.data, finalNode.parent, finalNode.depth, finalNode.missingTiles, finalNode.distance)
+    tail = Node(finalNode.data, finalNode.parent, finalNode.depth, finalNode.distance, finalNode.totalCost)
+    print("STARTING BACK TRACING FROM GOAL STATE")
     while tail:
-        tail.data.printPath(tail.parent)
+        tail.data.printPath(tail)
         tail = tail.parent
+    print("INITIAL STATE FOUND!!!")
+    print("Total Node Expanded: ", totalNodeExpanded)
+    print("Total Depth: ", totalDepth)
+    print("Largest Queue Size: ", largestQueueSize)
 
 main()
